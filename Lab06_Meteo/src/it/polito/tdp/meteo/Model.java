@@ -2,7 +2,10 @@ package it.polito.tdp.meteo;
 
 import java.util.List;
 
+import it.polito.tdp.meteo.bean.RilevamentoUmiditaMedia;
 import it.polito.tdp.meteo.bean.SimpleCity;
+import it.polito.tdp.meteo.db.MeteoDAO;
+import it.polito.tdp.meteo.exception.MeteoException;
 
 public class Model {
 
@@ -15,9 +18,14 @@ public class Model {
 
 	}
 
-	public String getUmiditaMedia(int mese) {
-
-		return "TODO!";
+	public String getUmiditaMedia(int mese) throws MeteoException {
+		List<RilevamentoUmiditaMedia> ruml = new MeteoDAO().getAllRilevamentiUmiditaMedie(mese);
+		StringBuilder sb = new StringBuilder();
+		for(RilevamentoUmiditaMedia rum : ruml){
+			sb.append(rum).append("\n");
+		}
+		
+		return sb.toString();
 	}
 
 	public String trovaSequenza(int mese) {

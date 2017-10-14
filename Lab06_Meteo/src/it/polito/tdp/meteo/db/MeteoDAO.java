@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import it.polito.tdp.meteo.bean.Rilevamento;
+import it.polito.tdp.meteo.bean.RilevamentoUmiditaMedia;
+import it.polito.tdp.meteo.exception.MeteoException;
 
 public class MeteoDAO {
 
@@ -40,7 +42,7 @@ public class MeteoDAO {
 	}
 
 	public List<Rilevamento> getAllRilevamentiLocalitaMese(int mese, String localita) {
-
+		
 		return null;
 	}
 
@@ -49,4 +51,36 @@ public class MeteoDAO {
 		return 0.0;
 	}
 
+
+	public List<RilevamentoUmiditaMedia> getAllRilevamentiUmiditaMedie(int mese) throws MeteoException{
+		Connection c = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		List<RilevamentoUmiditaMedia> ruml = new ArrayList<RilevamentoUmiditaMedia>();
+		
+		try{
+			String query = " SELECT localita, AVG(umidita) AS umidita_media FROM situazione WHERE MONTH(data) = ? GROUP BY localita";
+			c = DBConnect.getInstance().getConnection();
+			ps = c.prepareStatement(query);
+			ps.setInt(1, mese);
+			rs = ps.executeQuery();
+			
+			while(rs.next()){
+				RilevamentoUmiditaMedia rum = new RilevamentoUmiditaMedia(rs.getString("localita"), rs.getDouble("umidita_media"));
+				System.out.println("<getAllRilevamentiUmiditaMedie> " + rum);
+				ruml.add(rum);
+			}
+			
+			return ruml;
+			
+		} catch(SQLException sqle){
+			sqle.printStackTrace();
+			throw new MeteoException("Errore db", sqle);
+			
+		}
+
+	}
+	
+	
+	
 }
