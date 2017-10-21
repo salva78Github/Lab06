@@ -1,11 +1,8 @@
 package it.polito.tdp.meteo;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
 
-import it.polito.tdp.meteo.bean.RilevamentoUmiditaMedia;
 import it.polito.tdp.meteo.exception.MeteoException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

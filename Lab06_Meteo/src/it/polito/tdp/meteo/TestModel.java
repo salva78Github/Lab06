@@ -7,15 +7,15 @@ public class TestModel {
 	public static void main(String[] args) {
 
 		Model m = new Model();
-		
+		/*
 		try {
 			System.out.println(m.getUmiditaMedia(12));
 		} catch (MeteoException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		System.out.println(m.trovaSequenza(5));
+		*/
+		System.out.println(m.trovaSequenza(12));
 		
 //		System.out.println(m.trovaSequenza(4));
 	}
