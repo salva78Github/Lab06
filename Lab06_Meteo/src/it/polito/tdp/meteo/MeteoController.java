@@ -19,7 +19,7 @@ public class MeteoController {
 	private URL location;
 
 	@FXML
-	private ChoiceBox<Integer> boxMese;
+	private ChoiceBox<Model.Months> boxMese;
 
 	@FXML
 	private Button btnCalcola;
@@ -34,12 +34,18 @@ public class MeteoController {
 	
 	@FXML
 	void doCalcolaSequenza(ActionEvent event) {
-
+		int mese = boxMese.getValue().value();
+		System.out.println("<doCalcolaSequenza> mese: " + mese);
+		
+		String sequenza = this.model.trovaSequenza(mese);
+		txtResult.setText(sequenza);
+		
+		
 	}
 
 	@FXML
 	void doCalcolaUmidita(ActionEvent event) {
-		int mese = boxMese.getValue();
+		int mese = boxMese.getValue().value();
 		System.out.println("<doCalcolaUmidita> mese: " + mese);
 		String umiditaMedie;
 		try {
@@ -65,8 +71,8 @@ public class MeteoController {
 		assert btnUmidita != null : "fx:id=\"btnUmidita\" was not injected: check your FXML file 'Meteo.fxml'.";
 		assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'Meteo.fxml'.";
 		// qui perché non dipende dai dati
-		for (int i = 1; i <= 12; i++) {
-			this.boxMese.getItems().add(i);
+		for (Model.Months mese : Model.Months.values()) {
+			boxMese.getItems().add(mese);
 		}
 	}
 

@@ -2,6 +2,8 @@ package it.polito.tdp.meteo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import it.polito.tdp.meteo.bean.Citta;
 import it.polito.tdp.meteo.bean.RilevamentoUmiditaMedia;
@@ -15,16 +17,47 @@ public class Model {
 	private final static int NUMERO_GIORNI_CITTA_CONSECUTIVI_MIN = 3;
 	private final static int NUMERO_GIORNI_CITTA_MAX = 6;
 	private final static int NUMERO_GIORNI_TOTALI = 15;
-	private Citta[] citta = new Citta[3]; // 0 Torino, 1 Milano, 2, Genova
+	private List<Citta> citta = new ArrayList<Citta>(); 
 	private double costoMinimo = 0;
-	List<SimpleCity> soluzione = new ArrayList<SimpleCity>();
+	private static  MeteoDAO md = new  MeteoDAO();
+	List<SimpleCity> soluzione;
+	List<String> localita;
 
-	public Model() {
 
+	public Model() throws MeteoException {
+		localita  = getMeteoDAO().getCitta();
+		
+		for (String s : localita)
+			citta.add(new Citta(s));
 	}
 
+	public enum Months {
+
+		JAN, FEB, MAR, APR, MAY, JUN, JUL, AUG, SEP, OCT, NOV, DEC;
+
+		private static Map<Integer, Months> ss = new TreeMap<Integer, Months>();
+		private static final int START_VALUE = 1;
+		private int value;
+
+		static {
+			for (int i = 0; i < values().length; i++) {
+				values()[i].value = START_VALUE + i;
+				ss.put(values()[i].value, values()[i]);
+			}
+		}
+
+		public static Months fromInt(int i) {
+			return ss.get(i - 1);
+		}
+
+		public int value() {
+			return value;
+		}
+	}
+
+	
 	public String getUmiditaMedia(int mese) throws MeteoException {
-		List<RilevamentoUmiditaMedia> ruml = new MeteoDAO().getAllRilevamentiUmiditaMedie(mese);
+		List<RilevamentoUmiditaMedia> ruml = getMeteoDAO().getAllRilevamentiUmiditaMedie(mese);
 		StringBuilder sb = new StringBuilder();
 		for (RilevamentoUmiditaMedia rum : ruml) {
 			sb.append(rum).append("\n");
@@ -42,12 +75,14 @@ public class Model {
 		int level = 0;
 
 		List<SimpleCity> soluzioneParziale = new ArrayList<SimpleCity>();
-
+		this.costoMinimo=0;
+		this.soluzione= new ArrayList<SimpleCity>();
+		
 		recursive(level, soluzioneParziale);
 
 		StringBuffer sb = new StringBuffer();
 		for (SimpleCity sc : soluzione) {
-			sb.append(sc);
+			sb.append(sc).append(" - ");
 		}
 		sb.append("Costo Totale Minimo: ").append(costoMinimo);
 
@@ -68,19 +103,19 @@ public class Model {
 
 		}
 
-		for (int i = 0; i < 3; i++) {
+		for (Citta c : citta) {
 
-			SimpleCity sc = new SimpleCity(citta[i].getNome(),
-					citta[i].getRilevamenti().get(level).getUmidita());
+			SimpleCity sc = new SimpleCity(c.getNome(),
+					c.getRilevamenti().get(level).getUmidita());
 			soluzioneParziale.add(level, sc);
-			citta[i].increaseCounter();
+			c.increaseCounter();
 
 			if (checkSoluzioneParziale(soluzioneParziale, level)) {
 				recursive(level + 1, soluzioneParziale);
 			}
 
 			// backtracking
-			citta[i].decreaseCounter();
+			c.decreaseCounter();
 			soluzioneParziale.remove(level);
 
 		}
@@ -88,34 +123,58 @@ public class Model {
 	}
 
 	private boolean checkSoluzioneParziale(List<SimpleCity> soluzioneParziale, int level) {
+		
+		// Se e' nulla non e' valida
+		if (soluzioneParziale == null)
+			return false;
+
+		// Se la soluzione parziale e' vuota, e' valida
+		if (soluzioneParziale.size() == 0)
+			return true;
+
+		
 		// valida se usata meno di 6 volte e costo < della soluzione salvata
-		for (int i = 0; i < 3; i++) {
-			if (citta[i].getCounter() > NUMERO_GIORNI_CITTA_MAX) {
+		for (Citta c : citta) {
+			if (c.getCounter() > NUMERO_GIORNI_CITTA_MAX) {
 				return false;
 			}
 		}
 
-		if (level > NUMERO_GIORNI_CITTA_CONSECUTIVI_MIN) {
-			String citta = soluzioneParziale.get(level).getNome();
-			String cittaPrecedente = soluzioneParziale.get(level - 1).getNome();
-			System.out.println("<checkSoluzioneParziale> cittaPrecedente: " + cittaPrecedente);
-			
-			
-			
-			if(!citta.equals(cittaPrecedente)){
-				return (cittaPrecedente.equals(soluzioneParziale.get(level - 2).getNome())&&cittaPrecedente.equals(soluzioneParziale.get(level - 3).getNome()));
+		// Controllo sul vincolo del numero minimo di giorni consecutivi
+		SimpleCity previous = soluzioneParziale.get(0);
+		int counter = 0;
+
+		for (SimpleCity sc : soluzioneParziale) {
+			if (!previous.equals(sc)) {
+				if (counter < NUMERO_GIORNI_CITTA_CONSECUTIVI_MIN) {
+					return false;
+				}
+				counter = 1;
+				previous = sc;
+			} else {
+				counter++;
 			}
-		}	
+		}
+
 		
 		return true;
 	}
 
 	private void inzializeCittaParameters(int mese) throws MeteoException {
 		// TODO Auto-generated method stub
-		citta[0] = new Citta("Torino", new MeteoDAO().getAllRilevamentiLocalitaMese(mese, "Torino"));
-		citta[1] = new Citta("Milano", new MeteoDAO().getAllRilevamentiLocalitaMese(mese, "Milano"));
-		citta[2] = new Citta("Genova", new MeteoDAO().getAllRilevamentiLocalitaMese(mese, "Genova"));
+		
+		
+		for (Citta c : citta){
+			c.setRilevamenti(getMeteoDAO().getAllRilevamentiLocalitaMese(mese, c.getNome()));	
+			c.setCounter(0);
+		}
+		
 
+
+	}
+
+	private MeteoDAO getMeteoDAO() {
+		return md;
 	}
 
 	private Double punteggioSoluzione(List<SimpleCity> soluzioneCandidata) {

@@ -111,6 +111,32 @@ public class MeteoDAO {
 
 	}
 	
-	
+	public List<String> getCitta() throws MeteoException {
+		Connection c = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		List<String> citta = new ArrayList<String>();
+		
+		try{
+			String query = " SELECT DISTINCT localita FROM situazione";
+			c = DBConnect.getInstance().getConnection();
+			ps = c.prepareStatement(query);
+			rs = ps.executeQuery();
+			
+			while(rs.next()){
+				String localita = rs.getString("localita");
+				System.out.println("<getCitta> " + localita);
+				citta.add(localita);
+			}
+			
+			return citta;
+			
+		} catch(SQLException sqle){
+			sqle.printStackTrace();
+			throw new MeteoException("Errore db", sqle);
+			
+		}
+		
+	}
 	
 }

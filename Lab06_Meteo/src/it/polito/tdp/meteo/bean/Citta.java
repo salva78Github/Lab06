@@ -26,9 +26,16 @@ public class Citta {
 		return rilevamenti;
 	}
 
+	public void setRilevamenti(List<Rilevamento> rilevamenti) {
+		this.rilevamenti = rilevamenti;
+	}
 
 	public int getCounter() {
 		return counter;
+	}
+	
+	public void setCounter(int counter) {
+		this.counter = counter;
 	}
 
 	
@@ -66,9 +73,14 @@ public class Citta {
 		return true;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
-		return nome;
+		return "Citta [nome=" + nome + ", rilevamenti=" + rilevamenti + ", counter=" + counter + "]";
 	}
+
+	
 	
 }
